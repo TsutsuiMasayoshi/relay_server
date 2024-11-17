@@ -52,8 +52,11 @@ def upload_and_wait():
     if imgfile.filename == '':
         return json.dumps({"error": "ファイルが選択されていません"}), 400
         
-    if not imgfile and imgfile.filename.endswith('.png'):
-        return json.dumps({"error": "PNG画像のみ対応しています"}), 400
+    if not (imgfile and imgfile.filename.endswith('.jpg')):
+        return json.dumps({"error": "jpg画像のみ対応しています"}), 400
+
+    if not (soundfile and soundfile.filename.endswith('.wav')):
+        return json.dumps({"error": "wavファイルのみ対応しています"}), 400
 
     # imgfileをlocalに保存
     imgfilename = secure_filename(imgfile.filename)
@@ -80,12 +83,12 @@ def upload_and_wait():
     with open(response_file, 'r') as f:
         response_text = f.read()
 
-    if os.path.exists(response_file): # 読み終わったらファイルを削除
-        os.remove(response_file)
-    if os.path.exists(imgfilepath):
-        os.remove(imgfilepath)
-    if os.path.exists(soundfilepath):
-        os.remove(soundfilepath)
+    #if os.path.exists(response_file): # 読み終わったらファイルを削除
+        #os.remove(response_file)
+    #if os.path.exists(imgfilepath):
+        #os.remove(imgfilepath)
+    #if os.path.exists(soundfilepath):
+        #os.remove(soundfilepath)
 
     return json.dumps({"response": response_text})
 
@@ -104,10 +107,10 @@ def upload_response():
 
 @app.route("/retrieve")
 def retrieve():
-    """MLサーバーが画像とテキストを回収するエンドポイント"""
+    """MLサーバーが画像と音声を回収するエンドポイント"""
     res_dict = {
         "image": "",
-        "text": ""
+        "sound": ""
     }
 
     # ファイルがアップロードされるのを待機
@@ -120,31 +123,31 @@ def retrieve():
         if len(files) == 2:
             # 画像とテキストのファイルを区別して取得
             image_file = None
-            text_file = None
+            sound_file = None
             for file in files:
-                if file.endswith('.png'):
+                if file.endswith('.jpg'):
                     image_file = file
-                elif file.endswith('.txt'):
-                    text_file = file
+                elif file.endswith('.wav'):
+                    sound_file = file
 
             # ファイル形式が正しいか確認
-            if not image_file or not text_file:
-                return jsonify({"error": "pngおよびtxtファイルが揃っていません"}), 400
+            if not image_file or not sound_file:
+                return jsonify({"error": "jpgおよびwavファイルが揃っていません"}), 400
 
             # ファイル内容を読み込み、base64エンコードしてJSONに格納
             with open(os.path.join(upload_dir, image_file), 'rb') as img_f:
                 res_dict['image'] = base64.b64encode(img_f.read()).decode('utf-8')
-            with open(os.path.join(upload_dir, text_file), 'r', encoding='utf-8') as txt_f:
-                res_dict['text'] = txt_f.read()
+            with open(os.path.join(upload_dir, sound_file), 'r', encoding='utf-8') as snd_f:
+                res_dict['sound'] = snd_f.read()
 
             # ファイルを処理済みとして削除（必要に応じてバックアップ）
-            os.remove(os.path.join(upload_dir, image_file))
-            os.remove(os.path.join(upload_dir, text_file))
+            #os.remove(os.path.join(upload_dir, image_file))
+            #os.remove(os.path.join(upload_dir, sound_file))
 
             return jsonify(res_dict)
 
         # ファイルが揃っていない場合は待機
-        print('waiting img and text to be uploaded...')
+        print('waiting img and sound file to be uploaded...')
         time.sleep(5)
 
     # タイムアウト処理
