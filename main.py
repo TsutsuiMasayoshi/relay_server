@@ -83,12 +83,12 @@ def upload_and_wait():
     with open(response_file, 'r') as f:
         response_text = f.read()
 
-    #if os.path.exists(response_file): # 読み終わったらファイルを削除
-        #os.remove(response_file)
-    #if os.path.exists(imgfilepath):
-        #os.remove(imgfilepath)
-    #if os.path.exists(soundfilepath):
-        #os.remove(soundfilepath)
+    if os.path.exists(response_file): # 読み終わったらファイルを削除
+        os.remove(response_file)
+    if os.path.exists(imgfilepath):
+        os.remove(imgfilepath)
+    if os.path.exists(soundfilepath):
+        os.remove(soundfilepath)
 
     return json.dumps({"response": response_text})
 
@@ -134,16 +134,37 @@ def retrieve():
             if not image_file or not sound_file:
                 return jsonify({"error": "jpgおよびwavファイルが揃っていません"}), 400
 
-            # ファイル内容を読み込み、base64エンコードしてJSONに格納
-            with open(os.path.join(upload_dir, image_file), 'rb') as img_f:
-                res_dict['image'] = base64.b64encode(img_f.read()).decode('utf-8')
-            with open(os.path.join(upload_dir, sound_file), 'r', encoding='utf-8') as snd_f:
-                res_dict['sound'] = snd_f.read()
+            try:
+                # 両方のファイルをbase64エンコードしてJSONで返す
+                with open(os.path.join(upload_dir, image_file), 'rb') as img_f:
+                    img_base64 = base64.b64encode(img_f.read()).decode('utf-8')
+                with open(os.path.join(upload_dir, sound_file), 'rb') as sound_f:
+                    sound_base64 = base64.b64encode(sound_f.read()).decode('utf-8')
 
-            # ファイルを処理済みとして削除（必要に応じてバックアップ）
-            #os.remove(os.path.join(upload_dir, image_file))
-            #os.remove(os.path.join(upload_dir, sound_file))
+                res_dict = {
+                    "status": "success",
+                    "data": {
+                        "image": {
+                            "filename": image_file,
+                            "content": img_base64,
+                            "content_type": "image/jpeg"
+                        },
+                        "sound": {
+                            "filename": sound_file,
+                            "content": sound_base64,
+                            "content_type": "audio/wav"
+                        }
+                    }
+                }
 
+                return jsonify(res_dict)
+                
+            except Exception as e:
+                return jsonify({
+                    "status": "error",
+                    "message": str(e)
+                }), 500
+            
             return jsonify(res_dict)
 
         # ファイルが揃っていない場合は待機
