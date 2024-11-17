@@ -23,20 +23,27 @@ def index():
     """ ブラウザに「Hello World」と表示 """
     return "Hello World"
 
-@app.route("/json")
-def hello_world():
-    """ jsonを返却するサンプル """
-    res_dict = {
-        "id": 1,
-        "data": [
-            {
-                "user_id": 1,
-                "name": "yamada",
-                "age": "26"
-            }
-        ]
-    }
-    return json.dumps(res_dict)
+@app.route("/debug_upload", methods=['POST'])
+def debug_upload_and_wait():
+    if 'image' not in request.files:
+        return json.dumps({"error": "画像ファイルがありません"}), 400
+    
+    imgfile   = request.files['image']
+    soundfile = request.files['sound']
+    dbgprint('img  : ', imgfile)
+    dbgprint('sound: ', soundfile)
+
+    if imgfile.filename == '':
+        return json.dumps({"error": "ファイルが選択されていません"}), 400
+        
+    if not (imgfile and imgfile.filename.endswith('.jpg')):
+        return json.dumps({"error": "jpg画像のみ対応しています"}), 400
+
+    if not (soundfile and soundfile.filename.endswith('.wav')):
+        return json.dumps({"error": "wavファイルのみ対応しています"}), 400
+
+    return json.dumps({"response": "This is a debug response. Image file and sound file are received successfully."})
+
 
 @app.route("/upload", methods=['POST'])
 def upload_and_wait():
