@@ -20,8 +20,7 @@ response_dir = 'response'
 
 @app.route("/")
 def index():
-    """ ブラウザに「Hello World」と表示 """
-    return "Hello World"
+    return "Welcome to Chiikawa team's GCP server!"
 
 @app.route("/debug_upload", methods=['POST'])
 def debug_upload_and_wait():
