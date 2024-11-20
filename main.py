@@ -15,6 +15,7 @@ def dbgprint(message: str, val):
 app = Flask(__name__)
 
 upload_dir = 'uploads'
+debug_upload_dir = 'debug_uploads'
 response_dir = 'response'
 
 
@@ -110,10 +111,7 @@ def upload_response():
     # return success
     return jsonify({"message": "Success"}), 200
 
-
-@app.route("/retrieve")
-def retrieve():
-    """MLサーバーが画像と音声を回収するエンドポイント"""
+def retrieve_files_from(dir: str):
     res_dict = {
         "image": "",
         "sound": ""
@@ -123,7 +121,7 @@ def retrieve():
     timeout = 60  # タイムアウト秒数
     start_time = time.time()
     while time.time() - start_time < timeout:
-        files = os.listdir(upload_dir)
+        files = os.listdir(dir)
         
         # アップロードファイルが2つあるか確認
         if len(files) == 2:
@@ -142,9 +140,9 @@ def retrieve():
 
             try:
                 # 両方のファイルをbase64エンコードしてJSONで返す
-                with open(os.path.join(upload_dir, image_file), 'rb') as img_f:
+                with open(os.path.join(dir, image_file), 'rb') as img_f:
                     img_base64 = base64.b64encode(img_f.read()).decode('utf-8')
-                with open(os.path.join(upload_dir, sound_file), 'rb') as sound_f:
+                with open(os.path.join(dir, sound_file), 'rb') as sound_f:
                     sound_base64 = base64.b64encode(sound_f.read()).decode('utf-8')
 
                 res_dict = {
@@ -180,11 +178,23 @@ def retrieve():
     # タイムアウト処理
     return jsonify({"error": "タイムアウトしました"}), 408
 
+@app.route("/debug_retrieve")
+def debug_retrieve():
+    """MLサーバーが画像と音声を回収するエンドポイントDebug ver."""
+    return retrieve_files_from(debug_upload_dir)
+
+
+@app.route("/retrieve")
+def retrieve():
+    """MLサーバーが画像と音声を回収するエンドポイントRelease ver."""
+    return retrieve_files_from(upload_dir)
+
 if __name__ == '__main__':
-    upload_dir = 'uploads'
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
-    response_dir = 'response'
+    if not os.path.exists(debug_upload_dir):
+        print("Error. Please prepare debug_upload_dir as " + debug_upload_dir + " and prepare sample image and wav files.")
+        exit(1)
     if not os.path.exists(response_dir):
         os.makedirs(response_dir)
 
