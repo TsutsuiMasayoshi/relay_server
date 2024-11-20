@@ -2,7 +2,7 @@
 import requests
 import base64
 
-response = requests.get('http://localhost:80/retrieve')
+response = requests.get('http://34.30.245.193/debug_retrieve')
 data = response.json()
 
 if data['status'] == 'success':

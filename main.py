@@ -18,6 +18,7 @@ upload_dir = 'uploads'
 debug_upload_dir = 'debug_uploads'
 response_dir = 'response'
 
+response_file_path = os.path.join(response_dir, 'response.txt')
 
 @app.route("/")
 def index():
@@ -77,9 +78,8 @@ def upload_and_wait():
 
     timeout = 60  # タイムアウト秒数
     start_time = time.time()
-    response_file = os.path.join(response_dir, 'response.txt')
     while time.time() - start_time < timeout:
-        if not os.path.exists(response_file):
+        if not os.path.exists(response_file_path):
             print('waiting for response...')
             time.sleep(5) # 10秒待つ
         else:
@@ -87,11 +87,11 @@ def upload_and_wait():
 
     print('Response received!!')
 
-    with open(response_file, 'r') as f:
+    with open(response_file_path, 'r') as f:
         response_text = f.read()
 
-    if os.path.exists(response_file): # 読み終わったらファイルを削除
-        os.remove(response_file)
+    if os.path.exists(response_file_path): # 読み終わったらファイルを削除
+        os.remove(response_file_path)
     if os.path.exists(imgfilepath):
         os.remove(imgfilepath)
     if os.path.exists(soundfilepath):
@@ -103,13 +103,19 @@ def upload_and_wait():
 @app.route("/respond", methods=['POST'])
 def upload_response():
     """MLサーバーが応答テキストをuploadするエンドポイント"""
-    response_text = request.form.get('text', '')
-    response_path = os.path.join(response_dir, 'response.txt')
-    with open(response_path, 'w', encoding='utf-8') as f:
+    data = request.get_json()
+    if not data or 'response_text' not in data:
+        return jsonify({"error": "Invalid data"}), 400
+
+    # 受信したデータを展開
+    response_text = data['response_text']
+    print(f"Received response_text: {response_text}")
+
+    with open(response_file_path, 'w', encoding='utf-8') as f:
         f.write(response_text)
     
-    # return success
-    return jsonify({"message": "Success"}), 200
+    # 確認用のレスポンスを返す
+    return jsonify({"message": "Data received successfully", "response_text": response_text}), 200
 
 def retrieve_files_from(dir: str):
     res_dict = {
