@@ -84,7 +84,7 @@ def upload_and_wait():
         else:
             break
 
-    print('Response received!')
+    print('Response received!!')
 
     with open(response_file, 'r') as f:
         response_text = f.read()
