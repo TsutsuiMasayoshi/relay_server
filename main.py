@@ -37,8 +37,8 @@ def debug_upload_and_wait():
     if imgfile.filename == '':
         return json.dumps({"error": "ファイルが選択されていません"}), 400
         
-    if not (imgfile and imgfile.filename.endswith('.jpg')):
-        return json.dumps({"error": "jpg画像のみ対応しています"}), 400
+    if not (imgfile and imgfile.filename.endswith('.png')):
+        return json.dumps({"error": "png画像のみ対応しています"}), 400
 
     if not (soundfile and soundfile.filename.endswith('.wav')):
         return json.dumps({"error": "wavファイルのみ対応しています"}), 400
@@ -60,8 +60,8 @@ def upload_and_wait():
     if imgfile.filename == '':
         return json.dumps({"error": "ファイルが選択されていません"}), 400
         
-    if not (imgfile and imgfile.filename.endswith('.jpg')):
-        return json.dumps({"error": "jpg画像のみ対応しています"}), 400
+    if not (imgfile and imgfile.filename.endswith('.png')):
+        return json.dumps({"error": "png画像のみ対応しています"}), 400
 
     if not (soundfile and soundfile.filename.endswith('.wav')):
         return json.dumps({"error": "wavファイルのみ対応しています"}), 400
@@ -135,14 +135,14 @@ def retrieve_files_from(dir: str):
             image_file = None
             sound_file = None
             for file in files:
-                if file.endswith('.jpg'):
+                if file.endswith('.png'):
                     image_file = file
                 elif file.endswith('.wav'):
                     sound_file = file
 
             # ファイル形式が正しいか確認
             if not image_file or not sound_file:
-                return jsonify({"error": "jpgおよびwavファイルが揃っていません"}), 400
+                return jsonify({"error": "pngおよびwavファイルが揃っていません"}), 400
 
             try:
                 # 両方のファイルをbase64エンコードしてJSONで返す
